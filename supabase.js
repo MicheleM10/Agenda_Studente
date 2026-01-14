@@ -1,9 +1,9 @@
 // ============================================
-// SUPABASE CONFIGURATION FOR MicheleM10
+// SUPABASE BACKEND LOGIC FOR MicheleM10
 // ============================================
 
-const SUPABASE_URL = 'https://[your-supabase-url].supabase.co';
-const SUPABASE_ANON_KEY = '[your-anon-key]';
+const SUPABASE_URL = 'https://[supabase_url].supabase.co';
+const SUPABASE_ANON_KEY = '[your_anon_key]';
 
 // Initialize Supabase client
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -13,20 +13,18 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // ============================================
 
 /**
- * Sign up a new user with email and password
- * @param {string} email - User email
- * @param {string} password - User password
- * @param {string} username - Display name for the user
- * @returns {Promise<Object>} - Supabase auth response
+ * Registers a new user
+ * @param {string} email
+ * @param {string} password
+ * @param {string} username
+ * @returns {Promise<Object>}
  */
-async function signUp(email, password, username) {
+async function registerUser(email, password, username) {
     const { data, error } = await supabaseClient.auth.signUp({
         email: email,
         password: password,
         options: {
-            data: {
-                username: username
-            }
+            data: { username }
         }
     });
     if (error) throw error;
@@ -34,12 +32,12 @@ async function signUp(email, password, username) {
 }
 
 /**
- * Sign in a user with email and password
- * @param {string} email - User email
- * @param {string} password - User password
- * @returns {Promise<Object>} - Supabase auth response
+ * Logs in a user
+ * @param {string} email
+ * @param {string} password
+ * @returns {Promise<Object>} Authenticated user data
  */
-async function signIn(email, password) {
+async function loginUser(email, password) {
     const { data, error } = await supabaseClient.auth.signInWithPassword({
         email: email,
         password: password
@@ -49,21 +47,184 @@ async function signIn(email, password) {
 }
 
 /**
- * Get the current logged-in user
- * @returns {Promise<Object|null>} - Current user or null
+ * Gets the current session
+ * @returns {Promise<Object|null>}
  */
-async function getCurrentUser() {
-    const { data: { user } } = await supabaseClient.auth.getUser();
-    return user;
+async function getSession() {
+    const { data: { session }, error } = await supabaseClient.auth.getSession();
+    if (error) throw error;
+    return session;
 }
 
 /**
- * Sign out the current user
+ * Logs out the current user
  * @returns {Promise<void>}
  */
-async function signOut() {
+async function logoutUser() {
     const { error } = await supabaseClient.auth.signOut();
     if (error) throw error;
 }
 
-// Other schedule/task management functions can be added as necessary
+// ============================================
+// ORARIO FUNCTIONS
+// ============================================
+
+/**
+ * Fetch schedule for the logged-in user
+ * @returns {Promise<Object>}
+ */
+async function fetchSchedule() {
+    const { data, error } = await supabaseClient
+        .from('orario')
+        .select()
+        .single();
+
+    if (error) throw error;
+    return data;
+}
+
+/**
+ * Save or update a schedule
+ * @param {Object} scheduleData
+ * @returns {Promise<Object>}
+ */
+async function saveSchedule(scheduleData) {
+    const { data, error } = await supabaseClient
+        .from('orario')
+        .upsert(scheduleData, { onConflict: ['user_id'] })
+        .select()
+        .single();
+
+    if (error) throw error;
+    return data;
+}
+
+// ============================================
+// COMPITI FUNCTIONS
+// ============================================
+
+/**
+ * Fetch tasks for the logged-in user
+ * @returns {Promise<Array>}
+ */
+async function fetchTasks() {
+    const { data, error } = await supabaseClient
+        .from('compiti')
+        .select();
+
+    if (error) throw error;
+    return data;
+}
+
+/**
+ * Add a new task
+ * @param {Object} taskData
+ * @returns {Promise<Object>}
+ */
+async function addTask(taskData) {
+    const { data, error } = await supabaseClient
+        .from('compiti')
+        .insert(taskData)
+        .select()
+        .single();
+
+    if (error) throw error;
+    return data;
+}
+
+/**
+ * Update a task
+ * @param {string} taskId
+ * @param {Object} updatedData
+ * @returns {Promise<Object>}
+ */
+async function updateTask(taskId, updatedData) {
+    const { data, error } = await supabaseClient
+        .from('compiti')
+        .update(updatedData)
+        .match({ id: taskId })
+        .select()
+        .single();
+
+    if (error) throw error;
+    return data;
+}
+
+/**
+ * Delete a task
+ * @param {string} taskId
+ * @returns {Promise<void>}
+ */
+async function deleteTask(taskId) {
+    const { error } = await supabaseClient
+        .from('compiti')
+        .delete()
+        .match({ id: taskId });
+
+    if (error) throw error;
+}
+
+// ============================================
+// APPUNTI (NOTES) FUNCTIONS
+// ============================================
+
+/**
+ * Fetch all notes for the logged-in user
+ * @returns {Promise<Array>}
+ */
+async function fetchNotes() {
+    const { data, error } = await supabaseClient
+        .from('appunti')
+        .select();
+
+    if (error) throw error;
+    return data;
+}
+
+/**
+ * Add a new note
+ * @param {Object} noteData
+ * @returns {Promise<Object>}
+ */
+async function addNote(noteData) {
+    const { data, error } = await supabaseClient
+        .from('appunti')
+        .insert(noteData)
+        .select()
+        .single();
+
+    if (error) throw error;
+    return data;
+}
+
+/**
+ * Update a note
+ * @param {string} noteId
+ * @param {Object} updatedData
+ * @returns {Promise<Object>}
+ */
+async function updateNote(noteId, updatedData) {
+    const { data, error } = await supabaseClient
+        .from('appunti')
+        .update(updatedData)
+        .match({ id: noteId })
+        .select()
+        .single();
+
+    if (error) throw error;
+    return data;
+}
+
+/**
+ * Delete a note
+ * @param {string} noteId
+ * @returns {Promise<void>}
+ */
+async function deleteNote(noteId) {
+    const { error } = await supabaseClient
+        .from('appunti')
+        .delete()
+        .match({ id: noteId });
+
+    if (error) throw error;
+}
