@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agenda Scolastica</title>
     <link rel="stylesheet" href="style.css">
+    <script defer src="supabase.js"></script> <!-- Aggiunto file supabase.js -->
+    <script defer src="script.js"></script>
 </head>
 <body>
     <!-- LOGIN PAGE -->
@@ -13,8 +15,8 @@
             <h1>📚 Agenda Scolastica</h1>
             <form id="loginForm" onsubmit="effettuaLogin(event)">
                 <div class="form-group">
-                    <label for="username" class="form-label">Nome Utente</label>
-                    <input type="text" id="username" class="form-control" placeholder="Inserisci il tuo nome" required>
+                    <label for="username" class="form-label">Email</label>
+                    <input type="email" id="username" class="form-control" placeholder="Inserisci la tua email" required>
                 </div>
                 <div class="form-group">
                     <label for="password" class="form-label">Password</label>
@@ -22,12 +24,12 @@
                 </div>
                 <button type="submit" class="btn btn--primary btn--full-width">Accedi</button>
             </form>
-            <p class="login-hint">💡 Demo: usa qualsiasi username e password per accedere</p>
+            <p class="login-hint">💡 Usa le tue credenziali per accedere.</p>
         </div>
     </div>
 
     <!-- MAIN APP -->
-    <div id="mainApp" class="main-app-container">
+    <div id="mainApp" class="main-app-container hidden">
         <header>
             <h1>📚 Agenda Scolastica</h1>
             <nav>
@@ -43,7 +45,7 @@
             <!-- ORARIO -->
             <section id="orario" class="sezione attiva">
                 <h2>📅 Orario Settimanale</h2>
-                <form onsubmit="salvaOrario(event)">
+                <form id="orarioForm">
                     <div class="container-giorni-horizontal">
                         <div class="form-group-giorno">
                             <label for="lunedi" class="form-label">Lunedì</label>
@@ -77,7 +79,7 @@
             <!-- COMPITI -->
             <section id="compiti" class="sezione">
                 <h2>✓ I Miei Compiti</h2>
-                <form onsubmit="aggiungiCompito(event)">
+                <form id="compitiForm">
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                         <div style="flex: 1; min-width: 200px;">
                             <input type="text" id="compito" class="form-control" placeholder="Descrivi il compito..." required>
@@ -94,24 +96,16 @@
             <!-- RIPASSO -->
             <section id="ripasso" class="sezione">
                 <h2>🔄 Pianificazione Ripasso</h2>
-                <form onsubmit="aggiungiRipasso(event)">
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <div style="flex: 1; min-width: 200px;">
-                            <input type="text" id="argomento" class="form-control" placeholder="Argomento da ripassare..." required>
-                        </div>
-                        <div>
-                            <input type="date" id="dataRipasso" class="form-control" required>
-                        </div>
-                        <div>
-                            <select id="priorita" class="form-control" required>
-                                <option value="">Priorità</option>
-                                <option value="alta">🔴 Alta</option>
-                                <option value="media">🟡 Media</option>
-                                <option value="bassa">🟢 Bassa</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn-aggiungi">➕ Aggiungi</button>
-                    </div>
+                <form id="ripassoForm">
+                    <input type="text" id="argomento" class="form-control" placeholder="Argomento da ripassare..." required>
+                    <input type="date" id="dataRipasso" class="form-control" required>
+                    <select id="priorita" class="form-control" required>
+                        <option value="">Priorità</option>
+                        <option value="alta">🔴 Alta</option>
+                        <option value="media">🟡 Media</option>
+                        <option value="bassa">🟢 Bassa</option>
+                    </select>
+                    <button type="submit" class="btn-aggiungi">➕ Aggiungi</button>
                 </form>
                 <ul id="listaRipasso"></ul>
             </section>
@@ -119,34 +113,14 @@
             <!-- APPUNTI -->
             <section id="appunti" class="sezione">
                 <h2>📝 I Miei Appunti</h2>
-                <form onsubmit="aggiungiAppunto(event)">
-                    <div class="form-group">
-                        <label for="materia" class="form-label">Materia</label>
-                        <input type="text" id="materia" class="form-control" placeholder="Es: Matematica, Italiano..." required>
-                    </div>
-                    <div class="form-group">
-                        <label for="dataAppunto" class="form-label">Data</label>
-                        <input type="date" id="dataAppunto" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="testoAppunto" class="form-label">Testo Appunto</label>
-                        <textarea id="testoAppunto" class="form-control" placeholder="Scrivi il tuo appunto..." rows="6"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="fileAppunto" class="form-label">📎 Carica File (PDF, DOC, IMG, ecc.)</label>
-                        <input type="file" id="fileAppunto" class="form-control" accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.img">
-                    </div>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <button type="submit" class="btn-aggiungi">➕ Aggiungi Appunto</button>
-                        <button type="button" onclick="scaricaPDF()" class="btn btn--secondary">📥 Scarica PDF per Materia</button>
-                    </div>
+                <form id="appuntiForm">
+                    <input type="text" id="materia" class="form-control" placeholder="Materia">
+                    <textarea id="contenuto" class="form-control" rows="5" placeholder="Scrivi il contenuto del tuo appunto..."></textarea>
+                    <button type="submit" class="btn btn--primary">Aggiungi</button>
                 </form>
-                <div id="listaAppunti" class="lista-appunti"></div>
+                <ul id="listaAppunti"></ul>
             </section>
         </main>
     </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="script.js"></script>
 </body>
 </html>
