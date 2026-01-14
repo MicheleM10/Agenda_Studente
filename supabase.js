@@ -2,8 +2,8 @@
 // SUPABASE BACKEND LOGIC FOR MicheleM10
 // ============================================
 
-const SUPABASE_URL = 'https://[supabase_url].supabase.co';
-const SUPABASE_ANON_KEY = '[your_anon_key]';
+const SUPABASE_URL = 'https://xcpnfxlajgkqilahcksg.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjcG5meGxhamdrcWlsYWhja3NnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5MjYzMzcsImV4cCI6MjA4MTUwMjMzN30.yHq_2aYxKyB9tif1azCTPkyLYgFWQSwpM4i0eyVPbvk';
 
 // Initialize Supabase client
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
