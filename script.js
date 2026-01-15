@@ -1,7 +1,7 @@
 // ==================== SUPABASE CONFIG ====================
 // Statico puro: l'ANON KEY sarà visibile nel browser (normale). La sicurezza è garantita da RLS.
 const SUPABASE_URL = "https://xcpnfxlajgkqilahcksg.supabase.co";
-const SUPABASE_ANON_KEY = "INCOLLA_LA_TUA_ANON_KEY"; // <-- sostituisci con quella reale
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjcG5meGxhamdrcWlsYWhja3NnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5MjYzMzcsImV4cCI6MjA4MTUwMjMzN30.yHq_2aYxKyB9tif1azCTPkyLYgFWQSwpM4i0eyVPbvk"; // <-- sostituisci con quella reale
 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
