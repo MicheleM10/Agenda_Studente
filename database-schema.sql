@@ -1,104 +1,168 @@
 -- ============================================
--- DATABASE SCHEMA FOR MicheleM10 Agenda
+-- DATABASE SCHEMA (Supabase/Postgres) - Agenda Studente
 -- ============================================
 
--- Enable UUID generation
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+create extension if not exists "pgcrypto";
+
+-- Helper trigger updated_at
+create or replace function public.set_updated_at()
+returns trigger language plpgsql as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
 
 -- ============================================
--- ORARIO (Schedule Table)
+-- ORARIO
 -- ============================================
-CREATE TABLE IF NOT EXISTS orario (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY, -- Unique ID per entry
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL, -- Foreign key reference for users
-    schedule_data JSONB NOT NULL DEFAULT '{}'::jsonb, -- JSONB column for flexible data
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE(user_id) -- Ensure each user has a unique schedule
+create table if not exists public.orario (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  schedule_data jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique(user_id)
 );
 
--- Enforce RLS
-ALTER TABLE orario ENABLE ROW LEVEL SECURITY;
+alter table public.orario enable row level security;
 
--- Policies for "orario"
-CREATE POLICY "View own schedule" ON orario
-    FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Insert own schedule" ON orario
-    FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Update own schedule" ON orario
-    FOR UPDATE USING (auth.uid() = user_id);
-CREATE POLICY "Delete own schedule" ON orario
-    FOR DELETE USING (auth.uid() = user_id);
+drop policy if exists "View own schedule" on public.orario;
+drop policy if exists "Insert own schedule" on public.orario;
+drop policy if exists "Update own schedule" on public.orario;
+drop policy if exists "Delete own schedule" on public.orario;
+
+create policy "View own schedule" on public.orario
+for select using (auth.uid() = user_id);
+
+create policy "Insert own schedule" on public.orario
+for insert with check (auth.uid() = user_id);
+
+create policy "Update own schedule" on public.orario
+for update using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
+create policy "Delete own schedule" on public.orario
+for delete using (auth.uid() = user_id);
+
+drop trigger if exists trg_orario_updated_at on public.orario;
+create trigger trg_orario_updated_at
+before update on public.orario
+for each row execute function public.set_updated_at();
+
 
 -- ============================================
--- COMPITI (Tasks Table)
+-- COMPITI
 -- ============================================
-CREATE TABLE IF NOT EXISTS compiti (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY, -- Unique ID per task
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL, -- User association
-    text TEXT NOT NULL, -- Task description
-    completed BOOLEAN DEFAULT FALSE, -- Task completion flag
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
+create table if not exists public.compiti (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  descrizione text not null,
+  data date not null,
+  completed boolean not null default false,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
 );
 
--- Enforce RLS
-ALTER TABLE compiti ENABLE ROW LEVEL SECURITY;
+alter table public.compiti enable row level security;
 
--- Policies for "compiti"
-CREATE POLICY "View own tasks" ON compiti
-    FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Insert own tasks" ON compiti
-    FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Update own tasks" ON compiti
-    FOR UPDATE USING (auth.uid() = user_id);
-CREATE POLICY "Delete own tasks" ON compiti
-    FOR DELETE USING (auth.uid() = user_id);
+drop policy if exists "View own tasks" on public.compiti;
+drop policy if exists "Insert own tasks" on public.compiti;
+drop policy if exists "Update own tasks" on public.compiti;
+drop policy if exists "Delete own tasks" on public.compiti;
+
+create policy "View own tasks" on public.compiti
+for select using (auth.uid() = user_id);
+
+create policy "Insert own tasks" on public.compiti
+for insert with check (auth.uid() = user_id);
+
+create policy "Update own tasks" on public.compiti
+for update using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
+create policy "Delete own tasks" on public.compiti
+for delete using (auth.uid() = user_id);
+
+drop trigger if exists trg_compiti_updated_at on public.compiti;
+create trigger trg_compiti_updated_at
+before update on public.compiti
+for each row execute function public.set_updated_at();
+
 
 -- ============================================
--- APPUNTI (Notes Table)
+-- RIPASSO
 -- ============================================
-CREATE TABLE IF NOT EXISTS appunti (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY, -- Unique ID per note
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
-    titolo TEXT NOT NULL,
-    contenuto TEXT NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
+create table if not exists public.ripasso (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  argomento text not null,
+  data date not null,
+  priorita text not null check (priorita in ('alta','media','bassa')),
+  completed boolean not null default false,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
 );
 
--- Enforce RLS
-ALTER TABLE appunti ENABLE ROW LEVEL SECURITY;
+alter table public.ripasso enable row level security;
 
--- Policies for "appunti"
-CREATE POLICY "View own notes" ON appunti
-    FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Insert own notes" ON appunti
-    FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Update own notes" ON appunti
-    FOR UPDATE USING (auth.uid() = user_id);
-CREATE POLICY "Delete own notes" ON appunti
-    FOR DELETE USING (auth.uid() = user_id);
+drop policy if exists "View own ripasso" on public.ripasso;
+drop policy if exists "Insert own ripasso" on public.ripasso;
+drop policy if exists "Update own ripasso" on public.ripasso;
+drop policy if exists "Delete own ripasso" on public.ripasso;
+
+create policy "View own ripasso" on public.ripasso
+for select using (auth.uid() = user_id);
+
+create policy "Insert own ripasso" on public.ripasso
+for insert with check (auth.uid() = user_id);
+
+create policy "Update own ripasso" on public.ripasso
+for update using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
+create policy "Delete own ripasso" on public.ripasso
+for delete using (auth.uid() = user_id);
+
+drop trigger if exists trg_ripasso_updated_at on public.ripasso;
+create trigger trg_ripasso_updated_at
+before update on public.ripasso
+for each row execute function public.set_updated_at();
+
 
 -- ============================================
--- FILES (Optional Enhancements for File Uploads)
+-- APPUNTI
 -- ============================================
-CREATE TABLE IF NOT EXISTS files (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY, -- Unique ID per file
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
-    file_name TEXT NOT NULL,
-    file_url TEXT NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE(user_id, file_name) -- Prevent duplicate file names per user
+create table if not exists public.appunti (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  materia text not null,
+  contenuto text not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
 );
 
--- Enforce RLS
-ALTER TABLE files ENABLE ROW LEVEL SECURITY;
+alter table public.appunti enable row level security;
 
--- Policies for "files"
-CREATE POLICY "View own files" ON files
-    FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Insert own files" ON files
-    FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Delete own files" ON files
-    FOR DELETE USING (auth.uid() = user_id);
+drop policy if exists "View own notes" on public.appunti;
+drop policy if exists "Insert own notes" on public.appunti;
+drop policy if exists "Update own notes" on public.appunti;
+drop policy if exists "Delete own notes" on public.appunti;
+
+create policy "View own notes" on public.appunti
+for select using (auth.uid() = user_id);
+
+create policy "Insert own notes" on public.appunti
+for insert with check (auth.uid() = user_id);
+
+create policy "Update own notes" on public.appunti
+for update using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
+create policy "Delete own notes" on public.appunti
+for delete using (auth.uid() = user_id);
+
+drop trigger if exists trg_appunti_updated_at on public.appunti;
+create trigger trg_appunti_updated_at
+before update on public.appunti
+for each row execute function public.set_updated_at();
